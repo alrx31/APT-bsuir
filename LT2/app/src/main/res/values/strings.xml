@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">Taxi</string>
+    <string name="registration_title">Регистрация</string>
+    <string name="login_title">Вход</string>
+    <string name="phone_hint">Телефон</string>
+    <string name="first_name_hint">Имя</string>
+    <string name="last_name_hint">Фамилия</string>
+    <string name="button_registration">Register</string>
+    <string name="button_log_in">Log in</string>
+    <string name="user_info_title">Информация о пользователе</string>
+    <string name="user_name_default">Имя и фамилия:</string>
+    <string name="phone_default">Телефон:</string>
+    <string name="route_title">Маршрут движения</string>
+    <string name="button_set_path">Set path</string>
+    <string name="button_call_taxi">Call Taxi</string>
+    <string name="route_input_title">Ввод маршрута</string>
+    <string name="start_street_hint">Улица отправления</string>
+    <string name="start_house_hint">Дом отправления</string>
+    <string name="start_apartment_hint">Квартира отправления</string>
+    <string name="end_street_hint">Улица назначения</string>
+    <string name="end_house_hint">Дом назначения</string>
+    <string name="end_apartment_hint">Квартира назначения</string>
+    <string name="button_ok">OK</string>
+    <string name="taxi_called_message">Такси успешно вызвано!</string>
+    <string name="button_get_location">Определить текущее местоположение</string>
+    <string name="button_select_on_map">Выбрать на карте</string>
+    <string name="map_title">Выбор конечной точки</string>
+    <string name="location_permission_required">Необходимо разрешение на доступ к местоположению</string>
+    <string name="location_error">Ошибка получения местоположения</string>
+    <string name="getting_location">Получение местоположения...</string>
+    <string name="select_destination">Выберите конечную точку на карте</string>
+</resources>
