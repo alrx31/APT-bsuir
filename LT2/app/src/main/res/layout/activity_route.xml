@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/route_input_title"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Точка отправления"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonGetLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_get_location"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartStreet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_street_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartHouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_house_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartApartment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_apartment_hint"
+            android:inputType="text"
+            android:layout_marginBottom="24dp"
+            android:padding="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Точка назначения"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonSelectOnMap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_select_on_map"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextEndStreet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_street_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextEndHouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_house_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextEndApartment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_apartment_hint"
+            android:inputType="text"
+            android:layout_marginBottom="32dp"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/buttonOk"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_ok"
+            android:textSize="18sp"
+            android:padding="16dp" />
+
+    </LinearLayout>
+</ScrollView>
