@@ -12,10 +12,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="100sp"
             android:text="@string/route_input_title"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="24dp" />
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -40,7 +40,6 @@
             android:layout_height="wrap_content"
             android:hint="@string/start_street_hint"
             android:inputType="text"
-            android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
         <EditText
@@ -49,7 +48,6 @@
             android:layout_height="wrap_content"
             android:hint="@string/start_house_hint"
             android:inputType="text"
-            android:layout_marginBottom="16dp"
             android:padding="12dp" />
 
         <EditText
@@ -58,7 +56,6 @@
             android:layout_height="wrap_content"
             android:hint="@string/start_apartment_hint"
             android:inputType="text"
-            android:layout_marginBottom="24dp"
             android:padding="12dp" />
 
         <TextView
@@ -73,10 +70,9 @@
             android:id="@+id/buttonSelectOnMap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="12dp"
             android:text="@string/button_select_on_map"
-            android:textSize="14sp"
-            android:layout_marginBottom="8dp"
-            android:padding="12dp" />
+            android:textSize="14sp" />
 
         <EditText
             android:id="@+id/editTextEndStreet"
@@ -102,7 +98,6 @@
             android:layout_height="wrap_content"
             android:hint="@string/end_apartment_hint"
             android:inputType="text"
-            android:layout_marginBottom="32dp"
             android:padding="12dp" />
 
         <Button

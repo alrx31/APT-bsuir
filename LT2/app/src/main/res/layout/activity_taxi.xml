@@ -8,10 +8,11 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="100sp"
+        android:layout_marginBottom="16dp"
         android:text="@string/user_info_title"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/textViewUserName"
@@ -42,13 +43,13 @@
     <TextView
         android:id="@+id/textViewRoute"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textSize="16sp"
+        android:layout_height="142dp"
         android:layout_marginBottom="24dp"
-        android:padding="8dp"
+        android:background="#F5F5F5"
         android:minHeight="100dp"
-        android:background="#F5F5F5" />
+        android:padding="8dp"
+        android:text=""
+        android:textSize="16sp" />
 
     <Button
         android:id="@+id/buttonSetPath"
@@ -63,9 +64,9 @@
         android:id="@+id/buttonCallTaxi"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/button_call_taxi"
-        android:textSize="18sp"
         android:enabled="false"
-        android:padding="16dp" />
+        android:padding="16dp"
+        android:text="@string/button_call_taxi"
+        android:textSize="18sp" />
 
 </LinearLayout>
