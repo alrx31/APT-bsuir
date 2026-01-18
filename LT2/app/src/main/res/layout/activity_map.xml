@@ -7,11 +7,12 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="50sp"
+        android:gravity="center"
+        android:padding="16dp"
         android:text="@string/select_destination"
         android:textSize="18sp"
-        android:textStyle="bold"
-        android:padding="16dp"
-        android:gravity="center" />
+        android:textStyle="bold" />
 
     <fragment
         android:id="@+id/mapFragment"
