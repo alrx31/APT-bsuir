@@ -1,0 +1,292 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bsuir-sectioning}
+[2024/05/28 BSUIR STP2017 compatible headings, TOC, appendices and stages]
+
+%%% requires
+% advanched headings
+\RequirePackage[clearempty,newlinetospace]{titlesec}
+% advanched toc
+\RequirePackage{titletoc}
+
+%%% counters
+% numbering depth
+\setcounter{secnumdepth}{4}
+
+%%% 1 %%%%%% Document structure %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% 1.1 exclude from toc, phantoms %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% counters
+% initial toc depth
+\setcounter{tocdepth}{1}
+% toc depth before excluding
+\newcounter{oldtocdepth}
+% depth of exception
+\newcounter{notocdepth}
+
+%%% environment to exclude entries from toc
+\newenvironment{tocexception}{
+    \ifthenelse{\equal{0}{\thenotocdepth}}{
+        \setcounter{oldtocdepth}{\value{tocdepth}}
+        \addtocontents{toc}{\protect\setcounter{tocdepth}{-1}}
+    }{}
+    \addtocounter{notocdepth}{1}
+}{
+    \addtocounter{notocdepth}{-1}
+    \ifthenelse{\equal{0}{\value{notocdepth}}}{
+        \addtocontents{toc}{\protect\setcounter{tocdepth}{\value{oldtocdepth}}}
+    }{}
+}
+
+%%% 1.2 document stages %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% short form
+\NewDocumentCommand{\notoc}{
+    m % code to exclude
+}{
+    \begin{tocexception}
+        #1
+    \end{tocexception}
+}
+
+%%% before toc
+% run
+\NewDocumentCommand{\frontmatter}{}{
+    \begin{tocexception}
+        }
+
+        % auto
+        \AfterBeginDocument{\frontmatter}
+
+        %%% after toc
+        % run
+        \NewDocumentCommand{\mainmatter}{}{
+    \end{tocexception}
+}
+
+% auto
+\let\oldtableofcontents\tableofcontents
+\NewDocumentCommand{\bsuirtableofcontents}{}{
+    \oldtableofcontents
+    \mainmatter
+}
+\let\tableofcontents\bsuirtableofcontents
+
+%%% after bibliography
+% run
+\NewDocumentCommand{\backmatter}{}{
+    \appendix
+    \renewcommand{\thechapter}{\Asbuk{chapter}}
+    \renewcommand{\thefigure}{\Alph{chapter}.\arabic{figure}}
+    \renewcommand{\thelisting}{\Alph{chapter}.\arabic{listing}}
+}
+
+% auto
+\let\oldbibliography\bibliography
+\NewDocumentCommand{\bsuirbibliography}{
+    m % bibliography file
+}{
+    \oldbibliography{#1}
+    \backmatter
+}
+\let\bibliography\bsuirbibliography
+
+%%% 1.3 appendices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% helpers
+% rest of page height
+\newcommand\measurepage{\dimexpr\pagegoal-\pagetotal\relax}
+
+%%% make first page af appendix
+\NewDocumentCommand{\makeappendixpdf}{
+    s % is numberless?
+    o % appendix type and make titled
+    m % appendix title
+    s % is unformatted?
+    m % pdf file
+    s % is multipage?
+}{
+    \IfBooleanTF{#4}{
+        \chapter*[]{#3}
+        \IfBooleanTF{#1}{
+            % numberless, untitled, unformatted
+            \includepdf[pages=1]{#5}
+        }{
+            % numbered, untitled, unformatted
+            \includepdf[pages=1,pagecommand={}]{#5}
+        }
+    }{
+        \begin{center}
+            \IfValueTF{#2}{
+                % (un)numbered, titled, formatted
+                \chapter[#2]{#3}
+                \IfBooleanT{#1}{\thispagestyle{empty}}
+                \includegraphics[
+                    height=\measurepage-2pt,
+                    width=\textwidth
+                ]{#5}
+            }{
+                % (un)numbered, titleless, formatted
+                \chapter*[]{#3}
+                \IfBooleanT{#1}{\thispagestyle{empty}}
+                \vfill
+                \includegraphics[width=\textwidth-8pt]{#5}
+                \vfill
+            }
+        \end{center}
+        \clearpage
+    }
+    % multipage
+    \IfBooleanT{#6}{
+        \IfBooleanTF{#1}{
+            % numbered, multipage
+            \includepdf[pages=2-,pagecommand={}]{#5}
+        }{
+            % unnumbered, multipage
+            \includepdf[pages=2-]{#5}
+        }
+    }
+}
+
+%%% 2 %%% Headings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% 2.1 chapter %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% static styles
+% format
+\titleformat{name=\chapter,numberless}
+{\centering\bfseries\MakeUppercase}{}{0pt}{}
+% spacing
+\titlespacing{name=\chapter,numberless}{0pt}{0pt}{\baselineskip}
+\titlespacing{\chapter}{\parindent}{0pt}{\baselineskip}
+
+%%% override
+\let\oldchapter\chapter
+\NewDocumentCommand{\bsuirchapter}{
+    s % is numberless?
+    o % appendix type (if numberless, phantom)
+    m % title
+}{
+    \IfValueTF{#2}{
+        % appendix
+        % format
+        \titleformat{\chapter}{\centering\bfseries}
+        {\MakeUppercase{Приложение~\thechapter}}{\parskip}
+        {\\\MakeLowercase{(#2)}\\}
+        % contents
+        \titlecontents{chapter}[100pt]{}
+        {\hspace*{-100pt}Приложение~\thecontentslabel\hspace*{4pt}}{}
+        {\titlerule*[4pt]{.}\thecontentspage}
+    }{
+        % chapter
+        % format
+        \titleformat{\chapter}{\bfseries\MakeUppercase}{\thechapter}{\wordsep}{}
+        % contents
+        \titlecontents{chapter}[12pt]{}{\contentslabel{12pt}}
+        {\hspace*{-12pt}}{\titlerule*[4pt]{.}\thecontentspage}
+    }
+    \IfBooleanTF{#1}{
+        % contents
+        \titlecontents{chapter}[0pt]{}{\contentslabel{12pt}}{}
+        {\titlerule*[4pt]{.}\thecontentspage}
+        \IfValueTF{#2}{
+            % appendix, phantom
+            \clearpage\phantomheading*{#3}
+        }{
+            % chapter, numberless
+            \oldchapter*{#3}
+            \addcontentsline{toc}{chapter}{#3}
+        }
+    }{
+        % numbered chapter/numbered
+        \oldchapter[\IfValueT{#2}{(#2) }#3]{#3}
+        \label{sec:\thechapter}
+    }
+}
+\let\chapter\bsuirchapter
+
+%%% 2.1 section %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% static styles
+% format
+\titleformat{\section}{\bfseries}{\MakeUppercase\thesection}{\wordsep}{}
+% contents
+\titlecontents{section}[12pt]{}{\contentslabel{0pt}\hspace*{24pt}}
+{\hspace*{0pt}}{\titlerule*[4pt]{.}\thecontentspage}
+% spacing
+\titlespacing{\section}{\parindent}{\baselineskip}{\baselineskip}
+
+%%% override
+\let\oldsection\section
+\NewDocumentCommand{\bsuirsection}{
+    s % is numberless?
+    m % title
+}{
+    \IfBooleanTF{#1}{
+        % numbered
+        \oldsection*{#2}
+    }{
+        % numberless
+        \oldsection{#2}
+        \label{sec:\thesection}
+    }
+}
+\let\section\bsuirsection
+
+%%% 2.3 subsection %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% override
+\let\oldsubsection\subsection
+\NewDocumentCommand{\bsuirsubsection}{
+    s % is titled?
+    m % title
+}{
+    % format
+    \titleformat{\subsection}[\IfBooleanTF{#1}{hang}{runin}]{}
+    {\textbf{\thesubsection}}{\wordsep}{}
+    % spacing
+    \titlespacing{\subsection}{\parindent}{\baselineskip}
+    {\IfBooleanTF{#1}{\baselineskip}{\wordsep}}
+    % numbered
+    \oldsubsection[#2]{\IfBooleanT{#1}{#2}}
+    \label{sec:\thesubsection}
+}
+\let\subsection\bsuirsubsection
+
+%%% 2.4 subsubsection %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% override
+\let\oldsubsubsection\subsubsection
+\NewDocumentCommand{\bsuirsubsubsection}{
+    s % is titled?
+    m % title
+}{
+    % spacing
+    \titlespacing{\subsubsection}{\parindent}{\baselineskip}
+    {\IfBooleanTF{#1}{\baselineskip}{\wordsep}}
+    % format
+    \titleformat{\subsubsection}[\IfBooleanTF{#1}{hang}{runin}]{}
+    {\textbf{\thesubsubsection}}{\wordsep}{}
+    % numbered
+    \oldsubsubsection[#2]{\IfBooleanT{#1}{#2}}
+    \label{sec:\thesubsubsection}
+}
+\let\subsubsection\bsuirsubsubsection
+
+%%% 2.5 phantom headings %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% helpers
+% phantoms counter
+\newcounter{phantoms}
+
+%%% override
+\NewDocumentCommand{\phantomheading}{
+    s % add to toc?
+    O{chapter} % section level/type
+    m % title
+}{
+    \phantomsection
+    \IfBooleanTF{#1}
+    {\addcontentsline{toc}{#2}{#3}}
+    {\notoc{\addcontentsline{toc}{#2}{#3}}}
+}
