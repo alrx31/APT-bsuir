@@ -2,7 +2,6 @@ package com.example.lt3
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
 import android.widget.Toast
@@ -36,12 +35,7 @@ class MainActivity : ComponentActivity() {
         val listView = findViewById<ListView>(R.id.listView)
         val showSelectedButton = findViewById<Button>(R.id.showSelectedButton)
 
-        val adapter = ArrayAdapter(
-            this,
-            R.layout.list_item,
-            products
-        )
-
+        val adapter = ProductAdapter(products)
         listView.adapter = adapter
 
         showSelectedButton.setOnClickListener {

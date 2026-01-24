@@ -1,0 +1,1109 @@
+% !TeX program = xelatex
+% Пояснительная записка для лабораторной работы №2.
+% Компиляция: xelatex -shell-escape explanatory_note_lab2.tex
+\documentclass[variant=labwork]{bsuir}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{code}{Verbatim}{breaklines=true,breakanywhere=true,fontsize=\fontsize{10pt}{12pt}\selectfont}
+\sloppy
+\setlength{\emergencystretch}{2em}
+\faculty{Компьютерного проектирования}
+\departmentlong{Инжинерной психологии и эргономики}
+\departmentshort{ИПиЭ}
+\manager{Василькова А.Н.}
+\worktitle{Разработка приложений с несколькими Activity. Передача данных между Activity}
+\workcode{2}
+\titlepageyear{2025}
+\titleright{}
+\titleleft{}
+\group{310901}
+\student{Усов А.М.}
+\coursename{Технологии программирования приложений}
+
+\begin{document}
+\maketitle
+\mainmatter
+
+В рамках данной лабораторной работы разрабатывается приложение Taxi для платформы Android. Приложение представляет собой систему заказа такси с тремя основными Activity: регистрация пользователя, главный экран приложения и ввод маршрута движения.
+
+\textbf{Цель работы} — формирование у студентов знаний о жизненном цикле Activity, навыков создания и вызова нового Activity, передачи данных между Activity, хранения данных с помощью класса SharedPreferences, создания всплывающих сообщений и логирования.
+
+\section{Скриншоты графических представлений первого, второго и третьего Activity}
+
+\subsection{Первое Activity — RegistrationActivity}
+
+Ниже представлен внешний вид первого Activity приложения Taxi в Android Studio, демонстрирующий экран регистрации/входа пользователя.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{screenshots/auth.jpg}
+\caption{Графическое представление первого Activity (RegistrationActivity)}
+\label{fig:registration}
+\end{figure}
+
+На рисунке \ref{fig:registration} показан интерфейс экрана регистрации пользователя. При первом запуске приложения отображается форма регистрации с полями для ввода телефона, имени и фамилии. При повторном запуске форма преобразуется в форму входа с предзаполненными данными из SharedPreferences.
+
+\subsection{Второе Activity — TaxiActivity}
+
+Ниже представлен внешний вид второго Activity приложения Taxi в Android Studio, демонстрирующий главный экран приложения.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{screenshots/main.jpg}
+\caption{Графическое представление второго Activity (TaxiActivity)}
+\label{fig:taxi}
+\end{figure}
+
+На рисунке \ref{fig:taxi} показан интерфейс главного экрана приложения. На экране отображается информация о пользователе (имя, фамилия, телефон), полученная из Intent, а также информация о маршруте движения, восстановленная из SharedPreferences. Кнопка «Call Taxi» активируется только после установки маршрута.
+
+\subsection{Третье Activity — RouteActivity}
+
+Ниже представлен внешний вид третьего Activity приложения Taxi в Android Studio, демонстрирующий экран ввода маршрута движения.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{screenshots/path.jpg}
+\caption{Графическое представление третьего Activity (RouteActivity)}
+\label{fig:route}
+\end{figure}
+
+На рисунке \ref{fig:route} показан интерфейс экрана ввода маршрута движения. Пользователь может указать точку отправления (вручную или автоматически через GPS) и точку назначения (вручную или выбрав на карте). После заполнения всех полей и нажатия кнопки «OK» данные передаются обратно во второе Activity через механизм startActivityForResult.
+
+\section{Код XML-файлов графических представлений первого, второго и третьего Activity}
+
+\subsection{XML-файл первого Activity — activity\_registration.xml}
+
+Ниже представлен код XML-файла графического представления первого Activity приложения Taxi.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/textViewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/registration_title"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
+
+    <EditText
+        android:id="@+id/editTextPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/phone_hint"
+        android:inputType="phone"
+        android:layout_marginBottom="16dp"
+        android:padding="12dp" />
+
+    <EditText
+        android:id="@+id/editTextFirstName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/first_name_hint"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="16dp"
+        android:padding="12dp" />
+
+    <EditText
+        android:id="@+id/editTextLastName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/last_name_hint"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="32dp"
+        android:padding="12dp" />
+
+    <Button
+        android:id="@+id/buttonRegistration"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_registration"
+        android:textSize="18sp"
+        android:padding="16dp" />
+
+</LinearLayout>
+\end{code}
+
+В данном XML-файле используется \texttt{LinearLayout} с вертикальной ориентацией для размещения элементов интерфейса. Элементы включают заголовок (\texttt{TextView}), три поля ввода (\texttt{EditText}) для телефона, имени и фамилии, а также кнопку регистрации (\texttt{Button}).
+
+\subsection{XML-файл второго Activity — activity\_taxi.xml}
+
+Ниже представлен код XML-файла графического представления второго Activity приложения Taxi.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100sp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/user_info_title"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textViewUserName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/user_name_default"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/textViewPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/phone_default"
+        android:textSize="16sp"
+        android:layout_marginBottom="24dp"
+        android:padding="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/route_title"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/textViewRoute"
+        android:layout_width="match_parent"
+        android:layout_height="142dp"
+        android:layout_marginBottom="24dp"
+        android:background="#F5F5F5"
+        android:minHeight="100dp"
+        android:padding="8dp"
+        android:text=""
+        android:textSize="16sp" />
+
+    <Button
+        android:id="@+id/buttonSetPath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_set_path"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp" />
+
+    <Button
+        android:id="@+id/buttonCallTaxi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:padding="16dp"
+        android:text="@string/button_call_taxi"
+        android:textSize="18sp" />
+
+</LinearLayout>
+\end{code}
+
+В данном XML-файле используется \texttt{LinearLayout} с вертикальной ориентацией. Интерфейс включает текстовые поля для отображения информации о пользователе и маршруте, а также две кнопки: для установки маршрута и вызова такси. Кнопка вызова такси изначально отключена (\texttt{android:enabled="false"}) и активируется только после установки маршрута.
+
+\subsection{XML-файл третьего Activity — activity\_route.xml}
+
+Ниже представлен код XML-файла графического представления третьего Activity приложения Taxi.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100sp"
+            android:text="@string/route_input_title"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Точка отправления"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonGetLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_get_location"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartStreet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_street_hint"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartHouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_house_hint"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextStartApartment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/start_apartment_hint"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Точка назначения"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/buttonSelectOnMap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:text="@string/button_select_on_map"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/editTextEndStreet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_street_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextEndHouse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_house_hint"
+            android:inputType="text"
+            android:layout_marginBottom="16dp"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editTextEndApartment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/end_apartment_hint"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <Button
+            android:id="@+id/buttonOk"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_ok"
+            android:textSize="18sp"
+            android:padding="16dp" />
+
+    </LinearLayout>
+</ScrollView>
+\end{code}
+
+В данном XML-файле используется \texttt{ScrollView} для обеспечения возможности прокрутки содержимого при большом количестве элементов. Внутри размещен \texttt{LinearLayout} с полями для ввода адреса точки отправления и точки назначения, а также кнопками для автоматического определения местоположения, выбора точки на карте и подтверждения ввода.
+
+\section{Код Kotlin-файлов первого, второго и третьего Activity}
+
+\subsection{Kotlin-файл первого Activity — RegistrationActivity.kt}
+
+Ниже представлен код файла \texttt{RegistrationActivity.kt}, содержащий логику первого Activity приложения Taxi.
+
+\begin{code}
+package com.example.lt2
+
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+class RegistrationActivity : AppCompatActivity() {
+
+    private lateinit var textViewTitle: TextView
+    private lateinit var editTextPhone: EditText
+    private lateinit var editTextFirstName: EditText
+    private lateinit var editTextLastName: EditText
+    private lateinit var buttonRegistration: Button
+    private lateinit var sharedPreferences: SharedPreferences
+
+    companion object {
+        private const val TAG = "RegistrationActivity"
+        private const val PREFS_NAME = "TaxiPrefs"
+        private const val KEY_PHONE = "phone"
+        private const val KEY_FIRST_NAME = "first_name"
+        private const val KEY_LAST_NAME = "last_name"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
+        setContentView(R.layout.activity_registration)
+
+        sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        textViewTitle = findViewById(R.id.textViewTitle)
+        editTextPhone = findViewById(R.id.editTextPhone)
+        editTextFirstName = findViewById(R.id.editTextFirstName)
+        editTextLastName = findViewById(R.id.editTextLastName)
+        buttonRegistration = findViewById(R.id.buttonRegistration)
+
+        // Восстановление сохраненных данных
+        val savedPhone = sharedPreferences.getString(KEY_PHONE, "")
+        val savedFirstName = sharedPreferences.getString(KEY_FIRST_NAME, "")
+        val savedLastName = sharedPreferences.getString(KEY_LAST_NAME, "")
+
+        val isRegistered = savedPhone?.isNotEmpty() == true && 
+                          savedFirstName?.isNotEmpty() == true && 
+                          savedLastName?.isNotEmpty() == true
+
+        if (isRegistered) {
+            // При повторном запуске - показываем "Вход" и "Log in"
+            textViewTitle.text = getString(R.string.login_title)
+            editTextPhone.setText(savedPhone)
+            editTextFirstName.setText(savedFirstName)
+            editTextLastName.setText(savedLastName)
+            buttonRegistration.text = getString(R.string.button_log_in)
+        } else {
+            // При первом запуске - показываем "Регистрация" и "Register"
+            textViewTitle.text = getString(R.string.registration_title)
+            buttonRegistration.text = getString(R.string.button_registration)
+        }
+
+        buttonRegistration.setOnClickListener {
+            val phone = editTextPhone.text.toString()
+            val firstName = editTextFirstName.text.toString()
+            val lastName = editTextLastName.text.toString()
+
+            if (phone.isNotEmpty() && firstName.isNotEmpty() && lastName.isNotEmpty()) {
+                // Сохранение данных в SharedPreferences
+                sharedPreferences.edit().apply {
+                    putString(KEY_PHONE, phone)
+                    putString(KEY_FIRST_NAME, firstName)
+                    putString(KEY_LAST_NAME, lastName)
+                    apply()
+                }
+
+                // Запуск второго Activity с передачей данных
+                val intent = Intent(this, TaxiActivity::class.java).apply {
+                    putExtra("phone", phone)
+                    putExtra("firstName", firstName)
+                    putExtra("lastName", lastName)
+                }
+                startActivity(intent)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d(TAG, "onRestart")
+    }
+}
+\end{code}
+
+В классе \texttt{RegistrationActivity} реализована логика регистрации и входа пользователя:
+\begin{itemize}
+    \item использование \texttt{SharedPreferences} для сохранения и восстановления данных пользователя между сеансами;
+    \item проверка наличия сохраненных данных для определения режима работы (регистрация или вход);
+    \item явный вызов второго Activity (\texttt{TaxiActivity}) с передачей данных через \texttt{Intent} и методы \texttt{putExtra()};
+    \item логирование всех методов жизненного цикла Activity с использованием класса \texttt{Log} и тега \texttt{TAG}.
+\end{itemize}
+
+\subsection{Kotlin-файл второго Activity — TaxiActivity.kt}
+
+Ниже представлен код файла \texttt{TaxiActivity.kt}, содержащий логику второго Activity приложения Taxi.
+
+\begin{code}
+package com.example.lt2
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+
+class TaxiActivity : AppCompatActivity() {
+
+    private lateinit var textViewUserName: TextView
+    private lateinit var textViewPhone: TextView
+    private lateinit var textViewRoute: TextView
+    private lateinit var buttonSetPath: Button
+    private lateinit var buttonCallTaxi: Button
+    private lateinit var sharedPreferences: SharedPreferences
+
+    companion object {
+        private const val TAG = "TaxiActivity"
+        private const val REQUEST_CODE_ROUTE = 1
+        private const val PREFS_NAME = "TaxiPrefs"
+        private const val KEY_ROUTE_START_STREET = "route_start_street"
+        private const val KEY_ROUTE_START_HOUSE = "route_start_house"
+        private const val KEY_ROUTE_START_APARTMENT = "route_start_apartment"
+        private const val KEY_ROUTE_END_STREET = "route_end_street"
+        private const val KEY_ROUTE_END_HOUSE = "route_end_house"
+        private const val KEY_ROUTE_END_APARTMENT = "route_end_apartment"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
+        setContentView(R.layout.activity_taxi)
+
+        sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        textViewUserName = findViewById(R.id.textViewUserName)
+        textViewPhone = findViewById(R.id.textViewPhone)
+        textViewRoute = findViewById(R.id.textViewRoute)
+        buttonSetPath = findViewById(R.id.buttonSetPath)
+        buttonCallTaxi = findViewById(R.id.buttonCallTaxi)
+
+        // Получение данных из Intent
+        val phone = intent.getStringExtra("phone") ?: ""
+        val firstName = intent.getStringExtra("firstName") ?: ""
+        val lastName = intent.getStringExtra("lastName") ?: ""
+
+        // Вывод информации о пользователе
+        textViewUserName.text = getString(R.string.user_name_default) + " $firstName $lastName"
+        textViewPhone.text = getString(R.string.phone_default) + " $phone"
+
+        // Восстановление сохраненного маршрута
+        restoreRoute()
+
+        buttonSetPath.setOnClickListener {
+            // Неявный вызов третьего Activity через startActivityForResult
+            val intent = Intent().apply {
+                action = "com.example.lt2.ACTION_ROUTE"
+                addCategory(Intent.CATEGORY_DEFAULT)
+            }
+            startActivityForResult(intent, REQUEST_CODE_ROUTE)
+        }
+
+        buttonCallTaxi.setOnClickListener {
+            Toast.makeText(this, getString(R.string.taxi_called_message), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun restoreRoute() {
+        val startStreet = sharedPreferences.getString(KEY_ROUTE_START_STREET, "")
+        val startHouse = sharedPreferences.getString(KEY_ROUTE_START_HOUSE, "")
+        val startApartment = sharedPreferences.getString(KEY_ROUTE_START_APARTMENT, "")
+        val endStreet = sharedPreferences.getString(KEY_ROUTE_END_STREET, "")
+        val endHouse = sharedPreferences.getString(KEY_ROUTE_END_HOUSE, "")
+        val endApartment = sharedPreferences.getString(KEY_ROUTE_END_APARTMENT, "")
+
+        if (startStreet?.isNotEmpty() == true && endStreet?.isNotEmpty() == true) {
+            val routeInfo = """
+                    От: $startStreet, д. $startHouse, кв. $startApartment
+                    До: $endStreet, д. $endHouse, кв. $endApartment
+                    
+                    Вы можете вызвать такси.
+                """.trimIndent()
+
+            textViewRoute.text = routeInfo
+            buttonCallTaxi.isEnabled = true
+        }
+    }
+
+    private fun saveRoute(
+        startStreet: String,
+        startHouse: String,
+        startApartment: String,
+        endStreet: String,
+        endHouse: String,
+        endApartment: String
+    ) {
+        sharedPreferences.edit().apply {
+            putString(KEY_ROUTE_START_STREET, startStreet)
+            putString(KEY_ROUTE_START_HOUSE, startHouse)
+            putString(KEY_ROUTE_START_APARTMENT, startApartment)
+            putString(KEY_ROUTE_END_STREET, endStreet)
+            putString(KEY_ROUTE_END_HOUSE, endHouse)
+            putString(KEY_ROUTE_END_APARTMENT, endApartment)
+            apply()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d(TAG, "onActivityResult: requestCode=$requestCode, resultCode=$resultCode")
+
+        if (requestCode == REQUEST_CODE_ROUTE && resultCode == Activity.RESULT_OK) {
+            data?.let {
+                val startStreet = it.getStringExtra("startStreet") ?: ""
+                val startHouse = it.getStringExtra("startHouse") ?: ""
+                val startApartment = it.getStringExtra("startApartment") ?: ""
+                val endStreet = it.getStringExtra("endStreet") ?: ""
+                val endHouse = it.getStringExtra("endHouse") ?: ""
+                val endApartment = it.getStringExtra("endApartment") ?: ""
+
+                // Сохранение маршрута в SharedPreferences
+                saveRoute(startStreet, startHouse, startApartment, endStreet, endHouse, endApartment)
+
+                val routeInfo = """
+                    От: $startStreet, д. $startHouse, кв. $startApartment
+                    До: $endStreet, д. $endHouse, кв. $endApartment
+                    
+                    Вы можете вызвать такси.
+                """.trimIndent()
+
+                textViewRoute.text = routeInfo
+                buttonCallTaxi.isEnabled = true
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d(TAG, "onRestart")
+    }
+}
+\end{code}
+
+В классе \texttt{TaxiActivity} реализована логика главного экрана приложения:
+\begin{itemize}
+    \item получение данных из \texttt{Intent} с помощью методов \texttt{getStringExtra()};
+    \item неявный вызов третьего Activity через \texttt{startActivityForResult()} с использованием action и category;
+    \item обработка результата от третьего Activity в методе \texttt{onActivityResult()};
+    \item сохранение и восстановление маршрута с помощью \texttt{SharedPreferences};
+    \item использование класса \texttt{Toast} для отображения всплывающих сообщений;
+    \item логирование всех методов жизненного цикла Activity.
+\end{itemize}
+
+\subsection{Kotlin-файл третьего Activity — RouteActivity.kt}
+
+Ниже представлен код файла \texttt{RouteActivity.kt}, содержащий логику третьего Activity приложения Taxi (фрагмент с основными методами).
+
+\begin{code}
+package com.example.lt2
+
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+
+class RouteActivity : AppCompatActivity() {
+
+    private lateinit var editTextStartStreet: EditText
+    private lateinit var editTextStartHouse: EditText
+    private lateinit var editTextStartApartment: EditText
+    private lateinit var editTextEndStreet: EditText
+    private lateinit var editTextEndHouse: EditText
+    private lateinit var editTextEndApartment: EditText
+    private lateinit var buttonOk: Button
+    private lateinit var buttonGetLocation: Button
+    private lateinit var buttonSelectOnMap: Button
+
+    companion object {
+        private const val TAG = "RouteActivity"
+        private const val MAP_ACTIVITY_REQUEST_CODE = 2
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
+        setContentView(R.layout.activity_route)
+
+        editTextStartStreet = findViewById(R.id.editTextStartStreet)
+        editTextStartHouse = findViewById(R.id.editTextStartHouse)
+        editTextStartApartment = findViewById(R.id.editTextStartApartment)
+        editTextEndStreet = findViewById(R.id.editTextEndStreet)
+        editTextEndHouse = findViewById(R.id.editTextEndHouse)
+        editTextEndApartment = findViewById(R.id.editTextEndApartment)
+        buttonOk = findViewById(R.id.buttonOk)
+        buttonGetLocation = findViewById(R.id.buttonGetLocation)
+        buttonSelectOnMap = findViewById(R.id.buttonSelectOnMap)
+
+        buttonGetLocation.setOnClickListener {
+            getCurrentLocation()
+        }
+
+        buttonSelectOnMap.setOnClickListener {
+            val intent = Intent(this, MapActivity::class.java)
+            startActivityForResult(intent, MAP_ACTIVITY_REQUEST_CODE)
+        }
+
+        buttonOk.setOnClickListener {
+            val startStreet = editTextStartStreet.text.toString()
+            val startHouse = editTextStartHouse.text.toString()
+            val startApartment = editTextStartApartment.text.toString()
+            val endStreet = editTextEndStreet.text.toString()
+            val endHouse = editTextEndHouse.text.toString()
+            val endApartment = editTextEndApartment.text.toString()
+
+            // Возврат во второе Activity с результатом
+            val resultIntent = Intent().apply {
+                putExtra("startStreet", startStreet)
+                putExtra("startHouse", startHouse)
+                putExtra("startApartment", startApartment)
+                putExtra("endStreet", endStreet)
+                putExtra("endHouse", endHouse)
+                putExtra("endApartment", endApartment)
+            }
+            setResult(RESULT_OK, resultIntent)
+            finish()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == MAP_ACTIVITY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            data?.let {
+                val endStreet = it.getStringExtra("endStreet") ?: ""
+                val endHouse = it.getStringExtra("endHouse") ?: ""
+                val endApartment = it.getStringExtra("endApartment") ?: ""
+
+                editTextEndStreet.setText(endStreet)
+                editTextEndHouse.setText(endHouse)
+                editTextEndApartment.setText(endApartment)
+
+                Toast.makeText(
+                    this,
+                    "Конечная точка выбрана на карте",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Log.d(TAG, "onStart")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume")
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Log.d(TAG, "onPause")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d(TAG, "onStop")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "onDestroy")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d(TAG, "onRestart")
+    }
+}
+\end{code}
+
+В классе \texttt{RouteActivity} реализована логика ввода маршрута движения:
+\begin{itemize}
+    \item явный вызов \texttt{MapActivity} через \texttt{startActivityForResult()} для выбора точки на карте;
+    \item обработка результата от \texttt{MapActivity} в методе \texttt{onActivityResult()};
+    \item возврат данных во второе Activity через \texttt{setResult()} и \texttt{finish()};
+    \item использование класса \texttt{Toast} для отображения информационных сообщений;
+    \item логирование всех методов жизненного цикла Activity.
+\end{itemize}
+
+\section{Ответы на контрольные вопросы}
+
+\textbf{1. Как с помощью класса Toast создать всплывающее сообщение?}
+
+Для создания всплывающего сообщения с помощью класса \texttt{Toast} используется статический метод \texttt{makeText()}, который принимает контекст, текст сообщения и длительность отображения:
+
+\begin{code}
+Toast.makeText(context, "Текст сообщения", Toast.LENGTH_SHORT).show()
+Toast.makeText(context, "Текст сообщения", Toast.LENGTH_LONG).show()
+\end{code}
+
+\texttt{LENGTH\_SHORT} — короткое отображение (около 2 секунд), \texttt{LENGTH\_LONG} — длительное отображение (около 3.5 секунд). Метод \texttt{show()} отображает сообщение на экране.
+
+\textbf{2. В каких случаях необходимо логирование?}
+
+Логирование необходимо в следующих случаях:
+\begin{itemize}
+    \item отладка приложения для отслеживания выполнения кода и выявления ошибок;
+    \item мониторинг работы приложения в реальных условиях эксплуатации;
+    \item анализ производительности и оптимизация приложения;
+    \item отслеживание жизненного цикла компонентов (Activity, Service и др.);
+    \item диагностика проблем пользователей и анализ крашей приложения;
+    \item документирование важных событий и состояний приложения.
+\end{itemize}
+
+\textbf{3. Что представляет собой окно LogCat? Какие существуют уровни логирования?}
+
+LogCat — это инструмент в Android Studio, который отображает логи, генерируемые приложением и системой Android. Окно LogCat позволяет фильтровать логи по тегам, уровням важности и другим критериям.
+
+Уровни логирования в Android (от наименьшего к наибольшему):
+\begin{itemize}
+    \item \texttt{Log.v()} — VERBOSE — самый подробный уровень, для детальной диагностики;
+    \item \texttt{Log.d()} — DEBUG — отладочная информация;
+    \item \texttt{Log.i()} — INFO — информационные сообщения;
+    \item \texttt{Log.w()} — WARN — предупреждения о потенциальных проблемах;
+    \item \texttt{Log.e()} — ERROR — ошибки, требующие внимания;
+    \item \texttt{Log.wtf()} — ASSERT — критические ошибки (What a Terrible Failure).
+\end{itemize}
+
+\textbf{4. Как программно реализовать логирование?}
+
+Логирование реализуется с помощью класса \texttt{Log} и его статических методов:
+
+\begin{code}
+Log.v(TAG, "Verbose message")
+Log.d(TAG, "Debug message")
+Log.i(TAG, "Info message")
+Log.w(TAG, "Warning message")
+Log.e(TAG, "Error message", exception)
+\end{code}
+
+\texttt{TAG} — строка-идентификатор, обычно имя класса или компонента, для удобной фильтрации в LogCat. В качестве третьего параметра можно передать объект исключения (\texttt{Exception}) для логирования стека вызовов.
+
+\textbf{5. Как создать новое Activity (опишите работу с java-классом, layout-файлом, файлом конфигурации AndroidManifest.xml)?}
+
+Создание нового Activity включает три шага:
+
+\textbf{1. Создание Java/Kotlin класса:}
+\begin{itemize}
+    \item создать класс, наследующийся от \texttt{AppCompatActivity} (или \texttt{Activity});
+    \item переопределить метод \texttt{onCreate()}, в котором вызвать \texttt{setContentView()} с ID layout-файла.
+\end{itemize}
+
+\textbf{2. Создание layout-файла:}
+\begin{itemize}
+    \item создать XML-файл в папке \texttt{res/layout/} (например, \texttt{activity\_example.xml});
+    \item определить структуру пользовательского интерфейса с помощью View-элементов.
+\end{itemize}
+
+\textbf{3. Регистрация в AndroidManifest.xml:}
+\begin{itemize}
+    \item добавить элемент \texttt{<activity>} внутри тега \texttt{<application>};
+    \item указать атрибут \texttt{android:name} с полным именем класса (например, \texttt{.ExampleActivity});
+    \item при необходимости добавить \texttt{<intent-filter>} для неявного вызова Activity.
+\end{itemize}
+
+\textbf{6. Для чего используется контекст приложения Context?}
+
+Контекст приложения (\texttt{Context}) предоставляет доступ к ресурсам и системным сервисам Android:
+\begin{itemize}
+    \item доступ к ресурсам приложения (строки, цвета, drawable и др.) через методы \texttt{getString()}, \texttt{getColor()} и др.;
+    \item доступ к системным сервисам (LocationManager, SharedPreferences и др.);
+    \item запуск Activity, Service, BroadcastReceiver;
+    \item работа с файловой системой и базами данных;
+    \item получение информации о приложении и его компонентах.
+\end{itemize}
+
+\texttt{Activity} является контекстом, поэтому методы, требующие контекста, могут использовать \texttt{this} или \texttt{this@ActivityName}.
+
+\textbf{7. Для чего используются объекты класса Intent?}
+
+Объекты класса \texttt{Intent} используются для:
+\begin{itemize}
+    \item \textbf{явного вызова Activity} — указание конкретного класса Activity для запуска;
+    \item \textbf{неявного вызова Activity} — указание действия (\texttt{action}) и категории (\texttt{category}), система сама определяет подходящее Activity;
+    \item \textbf{передачи данных} между Activity через методы \texttt{putExtra()};
+    \item \textbf{запуска Service} и отправки BroadcastReceiver;
+    \item \textbf{получения результата} от Activity через \texttt{startActivityForResult()}.
+\end{itemize}
+
+\textbf{8. Как выполнить явный вызов Activity?}
+
+Явный вызов Activity выполняется с указанием конкретного класса:
+
+\begin{code}
+val intent = Intent(this, TargetActivity::class.java)
+intent.putExtra("key", "value")
+startActivity(intent)
+\end{code}
+
+Или с передачей данных:
+
+\begin{code}
+val intent = Intent(this, TargetActivity::class.java).apply {
+    putExtra("phone", phone)
+    putExtra("name", name)
+}
+startActivity(intent)
+\end{code}
+
+\textbf{9. Как выполнить неявный вызов Activity?}
+
+Неявный вызов Activity выполняется с указанием действия и категории:
+
+\begin{code}
+val intent = Intent().apply {
+    action = "com.example.app.ACTION_NAME"
+    addCategory(Intent.CATEGORY_DEFAULT)
+}
+startActivity(intent)
+\end{code}
+
+В \texttt{AndroidManifest.xml} Activity должно иметь соответствующий \texttt{<intent-filter>}:
+
+\begin{code}
+<activity android:name=".TargetActivity">
+    <intent-filter>
+        <action android:name="com.example.app.ACTION_NAME" />
+        <category android:name="android.intent.category.DEFAULT" />
+    </intent-filter>
+</activity>
+\end{code}
+
+\textbf{10. Какие состояния предусмотрены жизненным циклом Activity?}
+
+Жизненный цикл Activity включает следующие состояния:
+\begin{itemize}
+    \item \textbf{Created} — Activity создано, но еще не запущено;
+    \item \textbf{Started} — Activity видимо пользователю, но не в фокусе;
+    \item \textbf{Resumed} — Activity активно и находится в фокусе (пользователь может с ним взаимодействовать);
+    \item \textbf{Paused} — Activity частично видимо, но не в фокусе (например, когда появляется диалог);
+    \item \textbf{Stopped} — Activity полностью скрыто, но еще существует в памяти;
+    \item \textbf{Destroyed} — Activity уничтожено и удалено из памяти.
+\end{itemize}
+
+\textbf{11. Какие методы автоматически срабатывают при смене состояния Activity? Как можно использовать эти методы?}
+
+При смене состояния Activity автоматически вызываются следующие методы:
+
+\begin{itemize}
+    \item \texttt{onCreate()} — вызывается при создании Activity, используется для инициализации компонентов и установки layout;
+    \item \texttt{onStart()} — вызывается когда Activity становится видимым, используется для запуска анимаций или обновления UI;
+    \item \texttt{onResume()} — вызывается когда Activity становится активным, используется для возобновления операций (GPS, камера и др.);
+    \item \texttt{onPause()} — вызывается когда Activity теряет фокус, используется для приостановки операций и сохранения данных;
+    \item \texttt{onStop()} — вызывается когда Activity становится невидимым, используется для остановки операций и освобождения ресурсов;
+    \item \texttt{onRestart()} — вызывается перед \texttt{onStart()} при перезапуске остановленного Activity;
+    \item \texttt{onDestroy()} — вызывается перед уничтожением Activity, используется для финальной очистки ресурсов.
+\end{itemize}
+
+Эти методы можно использовать для управления ресурсами, сохранения и восстановления состояния, логирования и оптимизации производительности.
+
+\textbf{12. Как выполняется передача данных с помощью Intent?}
+
+Передача данных с помощью \texttt{Intent} выполняется через методы \texttt{putExtra()}:
+
+\begin{code}
+val intent = Intent(this, TargetActivity::class.java).apply {
+    putExtra("stringKey", "значение")
+    putExtra("intKey", 42)
+    putExtra("booleanKey", true)
+    putExtra("parcelableKey", parcelableObject)
+}
+startActivity(intent)
+\end{code}
+
+Получение данных в целевом Activity:
+
+\begin{code}
+val stringValue = intent.getStringExtra("stringKey") ?: ""
+val intValue = intent.getIntExtra("intKey", 0)
+val booleanValue = intent.getBooleanExtra("booleanKey", false)
+\end{code}
+
+Для передачи сложных объектов используется интерфейс \texttt{Parcelable} или \texttt{Serializable}.
+
+\textbf{13. В каком виде хранятся данные с помощью класса SharedPreferences?}
+
+Данные в \texttt{SharedPreferences} хранятся в виде пар «ключ-значение» в XML-файле. Поддерживаются следующие типы данных:
+\begin{itemize}
+    \item \texttt{String} — строковые значения;
+    \item \texttt{Int} — целочисленные значения;
+    \item \texttt{Long} — длинные целочисленные значения;
+    \item \texttt{Float} — числа с плавающей точкой;
+    \item \texttt{Boolean} — логические значения;
+    \item \texttt{Set<String>} — множества строк (начиная с API 11).
+\end{itemize}
+
+Данные сохраняются в файле \texttt{/data/data/<package\_name>/shared\_prefs/<prefs\_name>.xml}.
+
+\textbf{14. В каких случаях целесообразно хранить данные с помощью класса SharedPreferences?}
+
+\texttt{SharedPreferences} целесообразно использовать для хранения:
+\begin{itemize}
+    \item настроек пользователя (язык интерфейса, тема оформления, параметры отображения);
+    \item простых данных пользователя (имя, email, телефон);
+    \item флагов состояния приложения (первый запуск, статус авторизации);
+    \item небольших конфигурационных данных;
+    \item данных, которые должны сохраняться между сеансами работы приложения.
+\end{itemize}
+
+\texttt{SharedPreferences} не рекомендуется использовать для:
+\begin{itemize}
+    \item больших объемов данных (предпочтительнее база данных SQLite);
+    \item сложных структур данных (предпочтительнее база данных или файлы);
+    \item чувствительных данных (предпочтительнее шифрование);
+    \item данных, требующих частых обновлений в многопоточной среде.
+\end{itemize}
+
+\section{Заключение}
+
+В ходе выполнения лабораторной работы было разработано Android-приложение Taxi с тремя основными Activity, реализующее функционал регистрации пользователя, отображения информации и ввода маршрута движения.
+
+Были изучены и применены следующие технологии и подходы:
+\begin{itemize}
+    \item создание нескольких Activity и управление их жизненным циклом;
+    \item явный и неявный вызов Activity с помощью класса \texttt{Intent};
+    \item передача данных между Activity через \texttt{Intent} и методы \texttt{putExtra()};
+    \item получение результата от Activity через \texttt{startActivityForResult()} и \texttt{onActivityResult()};
+    \item хранение данных с помощью класса \texttt{SharedPreferences};
+    \item создание всплывающих сообщений с помощью класса \texttt{Toast};
+    \item логирование работы приложения с помощью класса \texttt{Log} и анализ логов в LogCat.
+\end{itemize}
+
+Приложение успешно демонстрирует навыки работы с несколькими Activity, передачи данных между ними и управления жизненным циклом компонентов Android-приложений.
+
+\section{Результаты вывода в лог очередности вызовов методов жизненного цикла первого, второго и третьего Activity}
+
+При запуске приложения и переходе между Activity в LogCat отображается следующая последовательность вызовов методов жизненного цикла:
+
+\subsection{Запуск приложения и переход от первого ко второму Activity}
+
+\begin{code}
+D/RegistrationActivity: onCreate
+D/RegistrationActivity: onStart
+D/RegistrationActivity: onResume
+D/RegistrationActivity: onPause
+D/TaxiActivity: onCreate
+D/TaxiActivity: onStart
+D/TaxiActivity: onResume
+D/RegistrationActivity: onStop
+\end{code}
+
+При нажатии кнопки регистрации первое Activity переходит в состояние \texttt{onPause}, затем создается второе Activity (\texttt{onCreate}), оно запускается (\texttt{onStart}) и становится активным (\texttt{onResume}), после чего первое Activity останавливается (\texttt{onStop}).
+
+\subsection{Переход от второго к третьему Activity}
+
+\begin{code}
+D/TaxiActivity: onPause
+D/RouteActivity: onCreate
+D/RouteActivity: onStart
+D/RouteActivity: onResume
+D/TaxiActivity: onStop
+\end{code}
+
+При нажатии кнопки «Set path» второе Activity переходит в состояние \texttt{onPause}, создается третье Activity (\texttt{onCreate}), оно запускается и становится активным, после чего второе Activity останавливается.
+
+\subsection{Возврат от третьего Activity ко второму}
+
+\begin{code}
+D/RouteActivity: onPause
+D/TaxiActivity: onRestart
+D/TaxiActivity: onStart
+D/TaxiActivity: onResume
+D/RouteActivity: onStop
+D/RouteActivity: onDestroy
+\end{code}
+
+При нажатии кнопки «OK» в третьем Activity оно переходит в состояние \texttt{onPause}, второе Activity перезапускается (\texttt{onRestart}), запускается (\texttt{onStart}) и становится активным (\texttt{onResume}), после чего третье Activity останавливается и уничтожается (\texttt{onDestroy}).
+
+\subsection{Полный цикл при возврате на главный экран}
+
+При возврате пользователя на главный экран через кнопку «Назад»:
+
+\begin{code}
+D/TaxiActivity: onPause
+D/RegistrationActivity: onRestart
+D/RegistrationActivity: onStart
+D/RegistrationActivity: onResume
+D/TaxiActivity: onStop
+D/TaxiActivity: onDestroy
+\end{code}
+
+Второе Activity переходит в состояние \texttt{onPause}, первое Activity перезапускается, запускается и становится активным, после чего второе Activity останавливается и уничтожается.
+
+\end{document}

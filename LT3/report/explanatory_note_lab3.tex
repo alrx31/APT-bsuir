@@ -1,0 +1,713 @@
+% !TeX program = xelatex
+% Пояснительная записка для лабораторной работы №3.
+% Компиляция: xelatex -shell-escape explanatory_note_lab3.tex
+\documentclass[variant=labwork]{bsuir}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{code}{Verbatim}{breaklines=true,breakanywhere=true,fontsize=\fontsize{10pt}{12pt}\selectfont}
+\sloppy
+\setlength{\emergencystretch}{2em}
+\faculty{Компьютерного проектирования}
+\departmentlong{Инжинерной психологии и эргономики}
+\departmentshort{ИПиЭ}
+\manager{Василькова А.Н.}
+\worktitle{Списки. Создание собственного адаптера. Механизмы обратного вызова}
+\workcode{3}
+\titlepageyear{2025}
+\titleright{}
+\titleleft{}
+\group{310901}
+\student{Усов А.М.}
+\coursename{Технологии программирования приложений}
+
+\begin{document}
+\maketitle
+\mainmatter
+
+В рамках данной лабораторной работы разрабатывается приложение MiniShop для платформы Android. Приложение представляет собой магазин товаров с возможностью выбора товаров из списка и просмотра выбранных товаров.
+
+\textbf{Цель работы} — формирование у студентов знаний и навыков создания кастомизированных списков на основе собственного адаптера, реализации механизмов обратного вызова для отслеживания событий в многофункциональных Android-приложениях.
+
+\section{Скриншоты графических представлений первого и второго Activity в Android Studio}
+
+Ниже представлены графические представления первого и второго Activity приложения MiniShop в Android Studio.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{screenshots/main.jpg}
+\caption{Вариант А: Первое Activity (MainActivity)}
+\label{fig:main_activity}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{screenshots/selected.jpg}
+\caption{Вариант Б: Второе Activity (SelectedItemsActivity)}
+\label{fig:selected_activity}
+\end{subfigure}
+\caption{Графические представления Activity приложения MiniShop}
+\label{fig:activities}
+\end{figure}
+
+На рисунке 1 (вариант А) показан интерфейс первого Activity приложения MiniShop. На экране отображается список товаров с возможностью множественного выбора и кнопка "Показать выбранные" для перехода ко второму Activity.
+
+На рисунке 1 (вариант Б) показан интерфейс второго Activity приложения MiniShop. На экране отображается список выбранных товаров и кнопка "Назад" для возврата к первому Activity.
+
+\section{Код XML-файлов графических представлений}
+
+\subsection{Разметка первого Activity (main\_activity.xml)}
+
+Ниже представлен код XML-файла разметки первого Activity приложения MiniShop.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="25sp"
+        android:layout_weight="1"
+        android:choiceMode="multipleChoice" />
+
+    <Button
+        android:id="@+id/showSelectedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Показать выбранные"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
+\end{code}
+
+В данном файле определены следующие элементы:
+\begin{itemize}
+    \item \texttt{LinearLayout} — контейнер с вертикальной ориентацией для размещения элементов интерфейса;
+    \item \texttt{ListView} — список товаров с возможностью множественного выбора (\texttt{android:choiceMode="multipleChoice"});
+    \item \texttt{Button} — кнопка для перехода к экрану выбранных товаров.
+\end{itemize}
+
+\subsection{Разметка второго Activity (selected\_items.xml)}
+
+Ниже представлен код XML-файла разметки второго Activity приложения MiniShop.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ListView
+        android:id="@+id/selectedListView"
+        android:layout_width="match_parent"
+        android:layout_height="536dp"
+        android:layout_marginTop="25sp"
+        android:layout_weight="1" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Назад" />
+
+</LinearLayout>
+\end{code}
+
+В данном файле определены следующие элементы:
+\begin{itemize}
+    \item \texttt{LinearLayout} — контейнер с вертикальной ориентацией;
+    \item \texttt{ListView} — список выбранных товаров;
+    \item \texttt{Button} — кнопка для возврата к первому Activity.
+\end{itemize}
+
+\subsection{Разметка элемента списка (list\_item.xml)}
+
+Ниже представлен код XML-файла разметки элемента списка для отображения товаров.
+
+\begin{code}
+<?xml version="1.0" encoding="utf-8"?>
+<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+    android:gravity="center_vertical"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:textSize="16sp" />
+\end{code}
+
+В данном файле определен элемент \texttt{CheckedTextView}, который используется для отображения элементов списка с возможностью выбора. Атрибут \texttt{android:checkMark} определяет вид индикатора выбора для множественного выбора.
+
+\section{Код Kotlin-файлов приложения MiniShop}
+
+\subsection{Модель данных (Product)}
+
+Ниже представлен код класса модели данных \texttt{Product}, используемой для представления товара в приложении.
+
+\begin{code}
+package com.example.lt3
+
+data class Product(
+    val name: String,
+    val price: Double
+) {
+    override fun toString(): String {
+        return "$name — $price руб."
+    }
+}
+\end{code}
+
+Класс \texttt{Product} представляет собой data class, содержащую информацию о товаре: название (\texttt{name}) и цену (\texttt{price}). Метод \texttt{toString()} переопределен для удобного отображения товара в списке.
+
+\subsection{Собственный адаптер (ProductAdapter)}
+
+Ниже представлен код класса \texttt{ProductAdapter}, реализующего собственный адаптер для списка товаров на основе \texttt{BaseAdapter}.
+
+\begin{code}
+package com.example.lt3
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
+import android.widget.CheckedTextView
+
+class ProductAdapter(
+    private val products: List<Product>
+) : BaseAdapter() {
+
+    override fun getCount(): Int = products.size
+
+    override fun getItem(position: Int): Product = products[position]
+
+    override fun getItemId(position: Int): Long = position.toLong()
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view: CheckedTextView = if (convertView == null) {
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.list_item, parent, false) as CheckedTextView
+        } else {
+            convertView as CheckedTextView
+        }
+
+        val product = getItem(position)
+        view.text = product.toString()
+
+        return view
+    }
+}
+\end{code}
+
+Класс \texttt{ProductAdapter} наследуется от \texttt{BaseAdapter} и реализует следующие методы:
+\begin{itemize}
+    \item \texttt{getCount()} — возвращает количество элементов в списке;
+    \item \texttt{getItem(position)} — возвращает объект \texttt{Product} по указанной позиции;
+    \item \texttt{getItemId(position)} — возвращает уникальный идентификатор элемента;
+    \item \texttt{getView(position, convertView, parent)} — создает или переиспользует View для отображения элемента списка. Использует механизм переиспользования View через параметр \texttt{convertView} для оптимизации производительности.
+\end{itemize}
+
+\subsection{Первый Activity (MainActivity)}
+
+Ниже представлен код класса \texttt{MainActivity}, содержащего логику работы первого экрана приложения.
+
+\begin{code}
+package com.example.lt3
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import android.widget.ListView
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+
+data class Product(
+    val name: String,
+    val price: Double
+) {
+    override fun toString(): String {
+        return "$name — $price руб."
+    }
+}
+
+class MainActivity : ComponentActivity() {
+
+    private val products = listOf(
+        Product("Яблоки", 120.0),
+        Product("Бананы", 89.50),
+        Product("Молоко", 75.0),
+        Product("Хлеб", 45.0),
+        Product("Сыр", 350.0),
+        Product("Колбаса", 280.0),
+        Product("Йогурт", 65.0)
+    )
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.main_activity)
+
+        val listView = findViewById<ListView>(R.id.listView)
+        val showSelectedButton = findViewById<Button>(R.id.showSelectedButton)
+
+        val adapter = ProductAdapter(products)
+        listView.adapter = adapter
+
+        showSelectedButton.setOnClickListener {
+            val selectedProducts = mutableListOf<Product>()
+            val checkedPositions = listView.checkedItemPositions
+
+            for (i in 0 until checkedPositions.size()) {
+                val position = checkedPositions.keyAt(i)
+                if (checkedPositions.valueAt(i)) {
+                    selectedProducts.add(products[position])
+                }
+            }
+
+            if (selectedProducts.isEmpty()) {
+                Toast.makeText(this, "Ничего не выбрано", Toast.LENGTH_SHORT).show()
+            } else {
+                val totalPrice = selectedProducts.sumOf { it.price }
+                val selectedStrings = ArrayList(selectedProducts.map { it.toString() })
+
+                val intent = Intent(this, SelectedItemsActivity::class.java)
+                intent.putStringArrayListExtra("selected_items", selectedStrings)
+                intent.putExtra("total_price", totalPrice)
+                startActivity(intent)
+            }
+        }
+    }
+}
+\end{code}
+
+В классе \texttt{MainActivity} реализована следующая функциональность:
+\begin{itemize}
+    \item создание списка товаров (\texttt{products});
+    \item инициализация \texttt{ListView} и установка собственного адаптера \texttt{ProductAdapter};
+    \item обработка нажатия кнопки "Показать выбранные" через механизм обратного вызова (\texttt{setOnClickListener});
+    \item получение выбранных элементов списка через \texttt{checkedItemPositions};
+    \item передача выбранных товаров во второе Activity через \texttt{Intent} с использованием методов \texttt{putStringArrayListExtra()} и \texttt{putExtra()};
+    \item отображение сообщения через \texttt{Toast}, если ничего не выбрано.
+\end{itemize}
+
+\subsection{Второй Activity (SelectedItemsActivity)}
+
+Ниже представлен код класса \texttt{SelectedItemsActivity}, содержащего логику работы второго экрана приложения.
+
+\begin{code}
+package com.example.lt3
+
+import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.ListView
+import androidx.activity.ComponentActivity
+
+class SelectedItemsActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.selected_items)
+
+        val selectedListView = findViewById<ListView>(R.id.selectedListView)
+        val button = findViewById<Button>(R.id.button)
+
+        val selectedItems = intent.getStringArrayListExtra("selected_items") ?: arrayListOf()
+
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            selectedItems
+        )
+
+        selectedListView.adapter = adapter
+
+        button.setOnClickListener {
+            finish()
+        }
+    }
+}
+\end{code}
+
+В классе \texttt{SelectedItemsActivity} реализована следующая функциональность:
+\begin{itemize}
+    \item получение данных из \texttt{Intent} через метод \texttt{getStringArrayListExtra()};
+    \item создание и установка \texttt{ArrayAdapter} для отображения выбранных товаров;
+    \item обработка нажатия кнопки "Назад" через механизм обратного вызова (\texttt{setOnClickListener}), который вызывает метод \texttt{finish()} для закрытия Activity.
+\end{itemize}
+
+\section{Ответы на контрольные вопросы}
+
+\textbf{1. Как создать View-элемент из содержимого layout-файла? В каких случаях это необходимо?}
+
+Для создания View-элемента из содержимого layout-файла используется класс \texttt{LayoutInflater} и его метод \texttt{inflate()}. Пример использования:
+
+\begin{code}
+val view = LayoutInflater.from(context)
+    .inflate(R.layout.list_item, parent, false)
+\end{code}
+
+Метод \texttt{inflate()} принимает следующие параметры:
+\begin{itemize}
+    \item ID ресурса layout-файла (\texttt{R.layout.list_item});
+    \item родительский контейнер (\texttt{parent});
+    \item флаг, указывающий, нужно ли добавлять созданный View в родительский контейнер (\texttt{false} — не добавлять сразу).
+\end{itemize}
+
+Это необходимо в следующих случаях:
+\begin{itemize}
+    \item при создании собственных адаптеров для списков (в методе \texttt{getView()});
+    \item при динамическом создании View-элементов в коде;
+    \item при создании кастомных диалогов и всплывающих окон;
+    \item при работе с Fragment и программным созданием их интерфейсов.
+\end{itemize}
+
+\textbf{2. Как создать и обеспечить работу списка ListView?}
+
+Для создания и обеспечения работы списка \texttt{ListView} необходимо выполнить следующие шаги:
+
+\begin{enumerate}
+    \item Добавить \texttt{ListView} в XML-разметку Activity:
+    \begin{code}
+<ListView
+    android:id="@+id/listView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:choiceMode="multipleChoice" />
+    \end{code}
+    
+    \item Создать или использовать готовый адаптер (например, \texttt{ArrayAdapter} или собственный адаптер, наследующийся от \texttt{BaseAdapter}):
+    \begin{code}
+val adapter = ProductAdapter(products)
+    \end{code}
+    
+    \item Установить адаптер для \texttt{ListView}:
+    \begin{code}
+listView.adapter = adapter
+    \end{code}
+    
+    \item (Опционально) Установить обработчик событий для элементов списка:
+    \begin{code}
+listView.setOnItemClickListener { parent, view, position, id ->
+    // Обработка нажатия на элемент
+}
+    \end{code}
+\end{enumerate}
+
+\textbf{3. Как реализовать собственный кастомизированный список?}
+
+Для реализации собственного кастомизированного списка необходимо:
+
+\begin{enumerate}
+    \item Создать класс адаптера, наследующийся от \texttt{BaseAdapter} или \texttt{ArrayAdapter}:
+    \begin{code}
+class ProductAdapter(private val products: List<Product>) : BaseAdapter() {
+    // Реализация методов
+}
+    \end{code}
+    
+    \item Переопределить необходимые методы адаптера:
+    \begin{itemize}
+        \item \texttt{getCount()} — возвращает количество элементов;
+        \item \texttt{getItem(position)} — возвращает элемент по позиции;
+        \item \texttt{getItemId(position)} — возвращает ID элемента;
+        \item \texttt{getView(position, convertView, parent)} — создает View для элемента.
+    \end{itemize}
+    
+    \item Создать XML-разметку для элемента списка (например, \texttt{list\_item.xml}).
+    
+    \item В методе \texttt{getView()} использовать \texttt{LayoutInflater} для создания View из layout-файла и заполнения его данными.
+    
+    \item Использовать механизм переиспользования View через параметр \texttt{convertView} для оптимизации производительности.
+\end{enumerate}
+
+\textbf{4. Что собой представляет и для чего нужен адаптер в Android-приложениях?}
+
+Адаптер в Android-приложениях — это класс, который связывает данные с View-элементами списка (\texttt{ListView}, \texttt{RecyclerView}, \texttt{Spinner} и др.). Адаптер преобразует данные из источника (массив, список, база данных) в View-элементы, которые отображаются на экране.
+
+Основные функции адаптера:
+\begin{itemize}
+    \item предоставление данных для отображения в списке;
+    \item создание и настройка View-элементов для каждого элемента списка;
+    \item управление переиспользованием View-элементов для оптимизации памяти и производительности;
+    \item обеспечение связи между данными и их визуальным представлением.
+\end{itemize}
+
+В Android используются следующие типы адаптеров:
+\begin{itemize}
+    \item \texttt{ArrayAdapter} — простой адаптер для работы с массивами и списками строк;
+    \item \texttt{BaseAdapter} — базовый класс для создания собственных адаптеров;
+    \item \texttt{CursorAdapter} — адаптер для работы с данными из базы данных через Cursor;
+    \item \texttt{RecyclerView.Adapter} — адаптер для работы с \texttt{RecyclerView} (современный подход).
+\end{itemize}
+
+\textbf{5. Какие методы класса BaseAdapter необходимо переопределить при создании кастомизированных списков?}
+
+При создании кастомизированных списков на основе \texttt{BaseAdapter} необходимо переопределить следующие методы:
+
+\begin{itemize}
+    \item \texttt{getCount(): Int} — возвращает количество элементов в списке. Этот метод определяет, сколько элементов будет отображено.
+    
+    \item \texttt{getItem(position: Int): Any} — возвращает объект данных по указанной позиции. Используется для получения данных элемента списка.
+    
+    \item \texttt{getItemId(position: Int): Long} — возвращает уникальный идентификатор элемента по позиции. Обычно возвращает позицию как ID.
+    
+    \item \texttt{getView(position: Int, convertView: View?, parent: ViewGroup): View} — самый важный метод, который создает или переиспользует View для отображения элемента списка. В этом методе происходит:
+    \begin{itemize}
+        \item создание View из layout-файла (если \texttt{convertView == null});
+        \item переиспользование существующего View (если \texttt{convertView != null});
+        \item заполнение View данными из источника;
+        \item возврат настроенного View.
+    \end{itemize}
+\end{itemize}
+
+\textbf{6. Для чего нужен метод getView в адаптере?}
+
+Метод \texttt{getView()} в адаптере выполняет следующие функции:
+
+\begin{itemize}
+    \item \textbf{Создание View-элементов} — создает View для каждого элемента списка на основе layout-файла с помощью \texttt{LayoutInflater}.
+    
+    \item \textbf{Переиспользование View} — оптимизирует использование памяти путем переиспользования уже созданных View-элементов через параметр \texttt{convertView}. Это критически важно для производительности при работе с большими списками.
+    
+    \item \textbf{Заполнение данными} — связывает данные из источника (массив, список) с View-элементами, устанавливая тексты, изображения и другие свойства.
+    
+    \item \textbf{Настройка внешнего вида} — позволяет кастомизировать внешний вид каждого элемента списка в зависимости от данных или позиции.
+\end{itemize}
+
+Пример реализации:
+\begin{code}
+override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+    val view: CheckedTextView = if (convertView == null) {
+        LayoutInflater.from(parent.context)
+            .inflate(R.layout.list_item, parent, false) as CheckedTextView
+    } else {
+        convertView as CheckedTextView
+    }
+    
+    val product = getItem(position)
+    view.text = product.toString()
+    
+    return view
+}
+\end{code}
+
+\textbf{7. Что собой представляет и как реализовать Header в списках?}
+
+Header (заголовок) в списках — это специальный элемент, который отображается в начале списка и обычно содержит статическую информацию или элементы управления.
+
+Для реализации Header в \texttt{ListView} можно использовать следующие подходы:
+
+\begin{enumerate}
+    \item \textbf{Использование метода \texttt{addHeaderView()}}:
+    \begin{code}
+val headerView = LayoutInflater.from(this)
+    .inflate(R.layout.header_layout, listView, false)
+listView.addHeaderView(headerView)
+    \end{code}
+    
+    \item \textbf{Создание кастомного адаптера с поддержкой Header}:
+    \begin{itemize}
+        \item добавить специальный тип элемента в адаптер для Header;
+        \item в методе \texttt{getViewTypeCount()} вернуть количество типов (обычно 2: Header и обычный элемент);
+        \item в методе \texttt{getItemViewType(position)} определить тип элемента;
+        \item в методе \texttt{getView()} создавать разные View в зависимости от типа.
+    \end{itemize}
+    
+    \item \textbf{Использование \texttt{RecyclerView} с \texttt{ConcatAdapter} или кастомным адаптером}, который объединяет несколько адаптеров.
+\end{enumerate}
+
+\textbf{8. Что собой представляет и как реализовать Footer в списках?}
+
+Footer (подвал) в списках — это специальный элемент, который отображается в конце списка и обычно содержит статическую информацию, элементы управления или индикатор загрузки.
+
+Для реализации Footer в \texttt{ListView} можно использовать следующие подходы:
+
+\begin{enumerate}
+    \item \textbf{Использование метода \texttt{addFooterView()}}:
+    \begin{code}
+val footerView = LayoutInflater.from(this)
+    .inflate(R.layout.footer_layout, listView, false)
+listView.addFooterView(footerView)
+    \end{code}
+    
+    \item \textbf{Создание кастомного адаптера с поддержкой Footer}:
+    \begin{itemize}
+        \item добавить специальный тип элемента в адаптер для Footer;
+        \item в методе \texttt{getViewTypeCount()} вернуть количество типов;
+        \item в методе \texttt{getItemViewType(position)} определить тип элемента (обычный элемент или Footer);
+        \item в методе \texttt{getView()} создавать разные View в зависимости от типа.
+    \end{itemize}
+    
+    \item \textbf{Использование \texttt{RecyclerView} с поддержкой Footer} через кастомный адаптер или библиотеки.
+\end{enumerate}
+
+\textbf{Важно:} Методы \texttt{addHeaderView()} и \texttt{addFooterView()} должны вызываться \textbf{до} установки адаптера для \texttt{ListView}.
+
+\textbf{9. Какие Вы знаете механизмы обратного вызова для обработки событий в Android-приложениях?}
+
+В Android-приложениях используются следующие механизмы обратного вызова для обработки событий:
+
+\begin{enumerate}
+    \item \textbf{Анонимные классы (Anonymous Classes)}:
+    \begin{code}
+button.setOnClickListener(object : View.OnClickListener {
+    override fun onClick(v: View?) {
+        // Обработка события
+    }
+})
+    \end{code}
+    
+    \item \textbf{Lambda-выражения} (современный подход в Kotlin):
+    \begin{code}
+button.setOnClickListener {
+    // Обработка события
+}
+    \end{code}
+    
+    \item \textbf{Реализация интерфейса в Activity/Fragment}:
+    \begin{code}
+class MainActivity : ComponentActivity(), View.OnClickListener {
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.button -> { /* обработка */ }
+        }
+    }
+}
+    \end{code}
+    
+    \item \textbf{Ссылки на методы (Method References)}:
+    \begin{code}
+button.setOnClickListener(this::onButtonClick)
+
+fun onButtonClick(view: View) {
+    // Обработка события
+}
+    \end{code}
+    
+    \item \textbf{Именованные классы-слушатели}:
+    \begin{code}
+class MyClickListener : View.OnClickListener {
+    override fun onClick(v: View?) {
+        // Обработка события
+    }
+}
+button.setOnClickListener(MyClickListener())
+    \end{code}
+    
+    \item \textbf{Обработчики событий для списков}:
+    \begin{code}
+listView.setOnItemClickListener { parent, view, position, id ->
+    // Обработка нажатия на элемент списка
+}
+    \end{code}
+    
+    \item \textbf{Lifecycle Callbacks} для Activity и Fragment:
+    \begin{code}
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    // Инициализация
+}
+    \end{code}
+\end{enumerate}
+
+\textbf{10. Как передать динамический массив объектов из одного Activity в другое с помощью Intent?}
+
+Для передачи динамического массива объектов из одного Activity в другое с помощью \texttt{Intent} можно использовать следующие подходы:
+
+\begin{enumerate}
+    \item \textbf{Передача ArrayList строк} (если объекты можно сериализовать в строки):
+    \begin{code}
+// В первом Activity
+val selectedStrings = ArrayList(selectedProducts.map { it.toString() })
+val intent = Intent(this, SecondActivity::class.java)
+intent.putStringArrayListExtra("selected_items", selectedStrings)
+startActivity(intent)
+
+// Во втором Activity
+val selectedItems = intent.getStringArrayListExtra("selected_items") ?: arrayListOf()
+    \end{code}
+    
+    \item \textbf{Передача массива примитивных типов}:
+    \begin{code}
+// Передача массива целых чисел
+intent.putExtra("numbers", intArrayOf(1, 2, 3))
+
+// Получение
+val numbers = intent.getIntArrayExtra("numbers")
+    \end{code}
+    
+    \item \textbf{Использование Parcelable} (для сложных объектов):
+    \begin{code}
+// Класс должен реализовывать интерфейс Parcelable
+data class Product(
+    val name: String,
+    val price: Double
+) : Parcelable {
+    // Реализация Parcelable
+}
+
+// Передача ArrayList объектов
+val intent = Intent(this, SecondActivity::class.java)
+intent.putParcelableArrayListExtra("products", ArrayList(products))
+startActivity(intent)
+
+// Получение
+val products = intent.getParcelableArrayListExtra<Product>("products")
+    \end{code}
+    
+    \item \textbf{Использование Serializable} (альтернатива Parcelable, но медленнее):
+    \begin{code}
+// Класс должен реализовывать интерфейс Serializable
+data class Product(
+    val name: String,
+    val price: Double
+) : Serializable
+
+// Передача
+intent.putExtra("products", ArrayList(products) as Serializable)
+
+// Получение
+val products = intent.getSerializableExtra("products") as? ArrayList<Product>
+    \end{code}
+    
+    \item \textbf{Передача через Bundle}:
+    \begin{code}
+val bundle = Bundle()
+bundle.putStringArrayList("items", selectedStrings)
+intent.putExtras(bundle)
+    \end{code}
+\end{enumerate}
+
+\textbf{Примечание:} В примере приложения MiniShop используется первый подход — передача \texttt{ArrayList<String>} через \texttt{putStringArrayListExtra()}, так как объекты \texttt{Product} преобразуются в строки через метод \texttt{toString()}.
+
+\section{Заключение}
+
+В ходе выполнения лабораторной работы было разработано Android-приложение MiniShop, реализующее функциональность магазина товаров с возможностью выбора товаров из списка и просмотра выбранных товаров.
+
+Были изучены и применены следующие технологии и подходы:
+\begin{itemize}
+    \item создание собственного адаптера на основе \texttt{BaseAdapter} для кастомизированного отображения списка товаров;
+    \item работа с \texttt{ListView} и механизмами множественного выбора элементов;
+    \item реализация механизмов обратного вызова через \texttt{setOnClickListener} для обработки событий нажатия кнопок;
+    \item передача данных между Activity через \texttt{Intent} с использованием методов \texttt{putStringArrayListExtra()} и \texttt{putExtra()};
+    \item использование \texttt{LayoutInflater} для создания View-элементов из layout-файлов;
+    \item оптимизация производительности списков через механизм переиспользования View в методе \texttt{getView()}.
+\end{itemize}
+
+Приложение успешно демонстрирует работу со списками, использование собственного адаптера и механизмов обратного вызова для обработки событий в Android-приложениях.
+
+\end{document}
