@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">MyNotes</string>
+    <string name="tab_show">Show</string>
+    <string name="tab_add">Add</string>
+    <string name="tab_del">Del</string>
+    <string name="tab_update">Update</string>
+    <string name="note_number">Номер заметки</string>
+    <string name="note_description">Описание заметки</string>
+    <string name="button_add">Add</string>
+    <string name="button_del">Del</string>
+    <string name="button_update">Update</string>
+    <string name="note_not_found">Заметка с указанным номером не найдена</string>
+    <string name="note_not_found_number">Заметка с номером %1$d не найдена в базе данных</string>
+    <string name="note_added">Заметка добавлена</string>
+    <string name="note_deleted">Заметка удалена</string>
+    <string name="note_updated">Заметка обновлена</string>
+    <string name="enter_note_number">Введите номер заметки</string>
+    <string name="enter_note_description">Введите описание заметки</string>
+    <string name="invalid_note_number">Неверный формат номера заметки</string>
+    <string name="error_adding_note">Ошибка при добавлении заметки</string>
+    <string name="error_deleting_note">Ошибка при удалении заметки</string>
+    <string name="error_updating_note">Ошибка при обновлении заметки</string>
+</resources>
