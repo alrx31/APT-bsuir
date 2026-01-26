@@ -35,40 +35,43 @@
 
 Ниже представлен внешний вид первого Activity приложения Taxi в Android Studio, демонстрирующий экран регистрации/входа пользователя.
 
+На рисунке \ref{fig:registration} показан интерфейс экрана регистрации пользователя. При первом запуске приложения отображается форма регистрации с полями для ввода телефона, имени и фамилии. При повторном запуске форма преобразуется в форму входа с предзаполненными данными из SharedPreferences.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{screenshots/auth.jpg}
+\includegraphics[width=0.2\textwidth]{screenshots/auth.jpg}
 \caption{Графическое представление первого Activity (RegistrationActivity)}
 \label{fig:registration}
 \end{figure}
 
-На рисунке \ref{fig:registration} показан интерфейс экрана регистрации пользователя. При первом запуске приложения отображается форма регистрации с полями для ввода телефона, имени и фамилии. При повторном запуске форма преобразуется в форму входа с предзаполненными данными из SharedPreferences.
 
 \subsection{Второе Activity — TaxiActivity}
 
 Ниже представлен внешний вид второго Activity приложения Taxi в Android Studio, демонстрирующий главный экран приложения.
 
+На рисунке \ref{fig:taxi} показан интерфейс главного экрана приложения. На экране отображается информация о пользователе (имя, фамилия, телефон), полученная из Intent, а также информация о маршруте движения, восстановленная из SharedPreferences. Кнопка «Call Taxi» активируется только после установки маршрута.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{screenshots/main.jpg}
+\includegraphics[width=0.2\textwidth]{screenshots/main.jpg}
 \caption{Графическое представление второго Activity (TaxiActivity)}
 \label{fig:taxi}
 \end{figure}
 
-На рисунке \ref{fig:taxi} показан интерфейс главного экрана приложения. На экране отображается информация о пользователе (имя, фамилия, телефон), полученная из Intent, а также информация о маршруте движения, восстановленная из SharedPreferences. Кнопка «Call Taxi» активируется только после установки маршрута.
 
 \subsection{Третье Activity — RouteActivity}
 
 Ниже представлен внешний вид третьего Activity приложения Taxi в Android Studio, демонстрирующий экран ввода маршрута движения.
 
+На рисунке \ref{fig:route} показан интерфейс экрана ввода маршрута движения. Пользователь может указать точку отправления (вручную или автоматически через GPS) и точку назначения (вручную или выбрав на карте). После заполнения всех полей и нажатия кнопки «OK» данные передаются обратно во второе Activity через механизм startActivityForResult.
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.5\textwidth]{screenshots/path.jpg}
+\includegraphics[width=0.2\textwidth]{screenshots/path.jpg}
 \caption{Графическое представление третьего Activity (RouteActivity)}
 \label{fig:route}
 \end{figure}
 
-На рисунке \ref{fig:route} показан интерфейс экрана ввода маршрута движения. Пользователь может указать точку отправления (вручную или автоматически через GPS) и точку назначения (вручную или выбрав на карте). После заполнения всех полей и нажатия кнопки «OK» данные передаются обратно во второе Activity через механизм startActivityForResult.
 
 \section{Код XML-файлов графических представлений первого, второго и третьего Activity}
 
